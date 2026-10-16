@@ -16,3 +16,4 @@ game/**/Builds/
 *.csproj
 *.sln
 .vs/
+*.slnx
