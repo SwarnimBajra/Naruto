@@ -4,10 +4,13 @@ import os
 import argparse
 import asyncio
 import json
+import hashlib
+import subprocess
 import sys
 import threading
 import time
-from collections import Counter, deque
+from collections import Counter
+from datetime import datetime, timezone
 
 
 import cv2
@@ -18,6 +21,21 @@ from mediapipe.tasks.python import vision
 from websockets.asyncio.server import serve, broadcast
 from websockets.exceptions import ConnectionClosed
 
+try:
+    from .gate import (
+        ARM_BELOW, ARM_FRAMES, CLASS_NAMES, DEFAULT_THRESHOLD, EXPECT_THRESHOLDS,
+        FREE_THRESHOLDS, HARD_NEED, ID_TO_NAME, NEED, SEALS, SEAL_SET, THRESH_GRID,
+        WINDOW, StabilityGate, best_per_class, frame_decision, need_for, update_armed,
+    )
+    from .recording import SessionRecorder
+except ImportError:  # direct invocation: python perception/service.py
+    from gate import (  # type: ignore[no-redef]
+        ARM_BELOW, ARM_FRAMES, CLASS_NAMES, DEFAULT_THRESHOLD, EXPECT_THRESHOLDS,
+        FREE_THRESHOLDS, HARD_NEED, ID_TO_NAME, NEED, SEALS, SEAL_SET, THRESH_GRID,
+        WINDOW, StabilityGate, best_per_class, frame_decision, need_for, update_armed,
+    )
+    from recording import SessionRecorder  # type: ignore[no-redef]
+
 REPO = "third_party/NARUTO-HandSignDetection"
 sys.path.insert(0, REPO)
 from model.yolox.yolox_onnx import YoloxONNX  # type: ignore  # noqa: E402
@@ -25,20 +43,6 @@ from model.yolox.yolox_onnx import YoloxONNX  # type: ignore  # noqa: E402
 YOLOX_MODEL = f"{REPO}/model/yolox/yolox_nano.onnx"
 HAND_MODEL = "models/hand_landmarker.task"
 
-ID_TO_NAME = {0: "Rat", 1: "Ox", 2: "Tiger", 3: "Hare", 4: "Dragon", 5: "Snake",
-              6: "Horse", 7: "Ram", 8: "Monkey", 9: "Bird", 10: "Dog", 11: "Boar",
-              12: "Gassho", 13: "Unknown", 14: "Mizunoe"}
-SEALS = ["Rat", "Ox", "Tiger", "Hare", "Dragon", "Snake",
-         "Horse", "Ram", "Monkey", "Bird", "Dog", "Boar"]
-SEAL_SET = set(SEALS)
-
-DEFAULT_THRESHOLD = 0.7
-FREE_THRESHOLDS = {"Snake": 0.6, "Monkey": 0.6}                   # any-seal mode
-EXPECT_THRESHOLDS = {"Hare": 0.5, "Ram": 0.6, "Snake": 0.6, "Monkey": 0.6}
-THRESH_GRID = [0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]                # idle test
-HARD = {"Hare", "Ram", "Snake"}
-WINDOW = 12               # frames considered
-NEED, HARD_NEED = 8, 8    # frames a seal must appear in (normal / hard tier)
 HAND_EVERY = 3            # run MediaPipe every 3rd frame
 IDLE_COUNTDOWN_S = 5.0
 REF_DIR = Path("shared/reference")   # relative to the repo root
@@ -49,35 +53,6 @@ PREVIEW_W = 320
 
 STATE = {"expect": None}
 CLIENTS = set()
-
-
-def need_for(seal):
-    return HARD_NEED if seal in HARD else NEED
-
-
-class StabilityGate:
-    """Confirms a seal after `need` hits in the window; stays confirmed until
-    the seal nearly leaves the window (hysteresis), so one hold = one confirm."""
-
-    def __init__(self, window, need):
-        self.hist = deque(maxlen=window)
-        self.need = need
-        self.release = max(2, need // 3)
-        self.current = None
-
-    def update(self, candidate):
-        self.hist.append(candidate)
-        counts = Counter(c for c in self.hist if c is not None)
-        if self.current is not None:
-            if counts.get(self.current, 0) >= self.release:
-                return self.current, 1.0, False
-            self.current = None
-        best, n = counts.most_common(1)[0] if counts else (None, 0)
-        if best and n >= self.need:
-            self.current = best
-            return best, 1.0, True
-        hold = min(n / self.need, 1.0) if best else 0.0
-        return None, hold, False
 
 
 async def handler(ws):
@@ -108,14 +83,6 @@ def run_server(port, ready, holder):
             await asyncio.Future()
     asyncio.run(server_main())
 
-
-def best_per_class(scores, class_ids):
-    best = {}
-    for s, c in zip(scores, class_ids):
-        name = ID_TO_NAME.get(int(c), f"id{int(c)}")
-        if float(s) > best.get(name, 0.0):
-            best[name] = float(s)
-    return best
 
 def box_for(name, scores, class_ids, bboxes):
     bb, bs = None, 0.0
@@ -170,7 +137,13 @@ def main():
     ap.add_argument("--no-mirror", action="store_true")
     ap.add_argument("--idle-test", type=float, default=0,
                     help="seconds of idle false-positive test, then print a report and exit")
+    ap.add_argument("--record", metavar="DIR", help="write a session JSONL recording")
+    ap.add_argument("--person", default="", help="pseudonymous participant ID")
+    ap.add_argument("--note", default="", help="free-text session note")
+    ap.add_argument("--record-video", action="store_true", help="also record raw camera frames to MP4")
     args = ap.parse_args()
+    if args.record_video and not args.record:
+        ap.error("--record-video requires --record DIR")
     show = args.show or args.idle_test > 0
     
     ready, holder = threading.Event(), {}
@@ -193,13 +166,19 @@ def main():
     cap = cv2.VideoCapture(args.camera)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 540)
+    camera_fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
 
     gate = StabilityGate(WINDOW, NEED)
     last_expect = None
     ref_best = load_ref_best()
+    armed, low_run = True, 0
     start = time.time()
     prev, last_ts, fps = start, -1, 0.0
     n_hands, frame_i, hand_ms = 0, 0, 0.0
+    recorder = None
+    session_stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    record_start = time.monotonic()
+    recorded_frames = 0
 
     idle = None
     if args.idle_test > 0:
@@ -218,6 +197,7 @@ def main():
             if not ok:
                 print("Camera read failed")
                 break
+            raw_frame = frame
             if not args.no_mirror:
                 frame = cv2.flip(frame, 1)
 
@@ -234,14 +214,13 @@ def main():
             if expect != last_expect:
                 gate = StabilityGate(WINDOW, need_for(expect))
                 last_expect = expect
-            if expect:
-                thr = EXPECT_THRESHOLDS.get(expect, DEFAULT_THRESHOLD)
-                exp_score = best.get(expect, 0.0)
-                candidate = expect if exp_score >= thr else None
-            else:
-                thr = FREE_THRESHOLDS.get(top_name, DEFAULT_THRESHOLD)
-                exp_score = 0.0
-                candidate = top_name if (top_name in SEAL_SET and top_score >= thr) else None
+                armed, low_run = (expect is None), 0
+                if recorder:
+                    recorder.write({"type": "expect", "t": time.monotonic() - record_start,
+                                    "seal": expect})
+            _, _, exp_score, _, _ = frame_decision(best, expect, armed)
+            armed, low_run = update_armed(expect, exp_score, armed, low_run)
+            candidate, thr, exp_score, top_name, top_score = frame_decision(best, expect, armed)
             stable, hold, new_confirm = gate.update(candidate)
             if (expect and stable == expect and exp_score >= REF_MIN_SCORE
                     and exp_score > ref_best.get(expect, 0.0)):
@@ -261,11 +240,56 @@ def main():
                     mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb), ts)
                 n_hands = len(res.hand_landmarks)
                 hand_ms = (time.time() - t_h) * 1000
+            if args.record and recorder is None:
+                model_sha = hashlib.sha256()
+                with open(YOLOX_MODEL, "rb") as model_file:
+                    for chunk in iter(lambda: model_file.read(1024 * 1024), b""):
+                        model_sha.update(chunk)
+                try:
+                    service_commit = subprocess.check_output(
+                        ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL,
+                        text=True, timeout=2).strip()
+                except Exception:
+                    service_commit = None
+                stamp = datetime.now(timezone.utc).isoformat()
+                rec_dir = Path(args.record)
+                stem = f"session_{session_stamp}"
+                header = {"type": "header", "service_git_commit": service_commit,
+                          "model_path": YOLOX_MODEL, "model_sha256": model_sha.hexdigest(),
+                          "camera_size": {"width": int(raw_frame.shape[1]), "height": int(raw_frame.shape[0])},
+                          "mirror": not args.no_mirror,
+                          "gate": {"WINDOW": WINDOW, "NEED": NEED, "HARD_NEED": HARD_NEED,
+                                   "thresholds": {s: EXPECT_THRESHOLDS.get(s, DEFAULT_THRESHOLD) for s in SEALS},
+                                   "free_thresholds": {s: FREE_THRESHOLDS.get(s, DEFAULT_THRESHOLD) for s in SEALS},
+                                   "ARM_BELOW": ARM_BELOW, "ARM_FRAMES": ARM_FRAMES},
+                          "person": args.person, "note": args.note, "start_utc": stamp}
+                recorder = SessionRecorder(rec_dir / f"{stem}.jsonl", header,
+                                           rec_dir / f"{stem}.mp4" if args.record_video else None,
+                                           camera_fps)
+                if last_expect is not None:
+                    recorder.write({"type": "expect", "t": time.monotonic() - record_start,
+                                    "seal": last_expect})
             frame_i += 1
 
             now = time.time()
             fps = 0.9 * fps + 0.1 * (1.0 / max(now - prev, 1e-6))
             prev = now
+
+            if recorder:
+                score_map = {name: float(best.get(name, 0.0)) for name in CLASS_NAMES}
+                top_box = None
+                if top_name:
+                    selected = box_for(top_name, scores, class_ids, bboxes)
+                    if selected is not None:
+                        top_box = [float(v) for v in selected]
+                recorder.write({"type": "frame", "i": recorded_frames,
+                                "t": time.monotonic() - record_start, "expect": expect,
+                                "scores": score_map, "top": [top_name, float(top_score)],
+                                "box": top_box, "hands": n_hands, "armed": bool(armed),
+                                "hold": float(hold), "stable": stable, "confirm": bool(new_confirm),
+                                "ms": {"cam": cam_ms, "yolox": yolox_ms}},
+                               raw_frame.copy() if args.record_video else None)
+                recorded_frames += 1
 
             phase_msg = ""
             if idle:
@@ -303,7 +327,7 @@ def main():
                     "t": round(now, 3), "stable_seal": stable, "hold": round(hold, 2),
                     "new_confirm": new_confirm, "raw": top_name,
                     "raw_score": round(top_score, 3), "expect": expect,
-                    "expect_score": round(exp_score, 3), "expect_thr": thr,
+                    "expect_score": round(exp_score, 3), "expect_thr": thr, "armed": armed,
                     "hands": n_hands, "fps": round(fps, 1),
                 })
                 loop.call_soon_threadsafe(lambda m=msg: broadcast(CLIENTS, m))
@@ -337,6 +361,14 @@ def main():
     except KeyboardInterrupt:
         pass
     finally:
+        if recorder:
+            recorder.close()
+            elapsed = max(time.monotonic() - record_start, 1e-6)
+            print(f"[record] {recorded_frames / elapsed:.2f} FPS recording=on "
+                  f"frames={recorded_frames} dropped={recorder.dropped} file={recorder.jsonl_path}")
+        else:
+            elapsed = max(time.monotonic() - record_start, 1e-6)
+            print(f"[record] {frame_i / elapsed:.2f} FPS recording=off frames={frame_i}")
         cap.release()
         cv2.destroyAllWindows()
 

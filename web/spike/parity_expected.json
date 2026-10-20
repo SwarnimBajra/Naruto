@@ -1,0 +1,418 @@
+{
+ "bird_0.jpg": {
+  "top": "Bird",
+  "top_score": 0.9115
+ },
+ "bird_1.jpg": {
+  "top": "Bird",
+  "top_score": 0.9034
+ },
+ "bird_2.jpg": {
+  "top": "Bird",
+  "top_score": 0.9227
+ },
+ "bird_3.jpg": {
+  "top": "Bird",
+  "top_score": 0.9266
+ },
+ "bird_4.jpg": {
+  "top": "Bird",
+  "top_score": 0.9224
+ },
+ "bird_5.jpg": {
+  "top": "Bird",
+  "top_score": 0.9265
+ },
+ "bird_6.jpg": {
+  "top": "Bird",
+  "top_score": 0.9244
+ },
+ "bird_7.jpg": {
+  "top": "Bird",
+  "top_score": 0.9201
+ },
+ "boar_0.jpg": {
+  "top": "Boar",
+  "top_score": 0.9105
+ },
+ "boar_1.jpg": {
+  "top": "Boar",
+  "top_score": 0.9245
+ },
+ "boar_2.jpg": {
+  "top": "Boar",
+  "top_score": 0.9241
+ },
+ "boar_3.jpg": {
+  "top": "Boar",
+  "top_score": 0.9259
+ },
+ "boar_4.jpg": {
+  "top": "Boar",
+  "top_score": 0.9286
+ },
+ "boar_5.jpg": {
+  "top": "Boar",
+  "top_score": 0.9264
+ },
+ "boar_6.jpg": {
+  "top": "Boar",
+  "top_score": 0.9275
+ },
+ "boar_7.jpg": {
+  "top": "Boar",
+  "top_score": 0.9318
+ },
+ "dog_0.jpg": {
+  "top": "Dog",
+  "top_score": 0.9227
+ },
+ "dog_1.jpg": {
+  "top": "Dog",
+  "top_score": 0.926
+ },
+ "dog_2.jpg": {
+  "top": "Dog",
+  "top_score": 0.9277
+ },
+ "dog_3.jpg": {
+  "top": "Dog",
+  "top_score": 0.9213
+ },
+ "dog_4.jpg": {
+  "top": "Dog",
+  "top_score": 0.9251
+ },
+ "dog_5.jpg": {
+  "top": "Dog",
+  "top_score": 0.9181
+ },
+ "dog_6.jpg": {
+  "top": "Dog",
+  "top_score": 0.9231
+ },
+ "dog_7.jpg": {
+  "top": "Dog",
+  "top_score": 0.912
+ },
+ "dragon_0.jpg": {
+  "top": "Dragon",
+  "top_score": 0.9234
+ },
+ "dragon_1.jpg": {
+  "top": "Dragon",
+  "top_score": 0.9212
+ },
+ "dragon_2.jpg": {
+  "top": "Dragon",
+  "top_score": 0.9227
+ },
+ "dragon_3.jpg": {
+  "top": "Dragon",
+  "top_score": 0.8702
+ },
+ "dragon_4.jpg": {
+  "top": "Dragon",
+  "top_score": 0.9058
+ },
+ "dragon_5.jpg": {
+  "top": "Dragon",
+  "top_score": 0.9035
+ },
+ "dragon_6.jpg": {
+  "top": "Dragon",
+  "top_score": 0.9126
+ },
+ "dragon_7.jpg": {
+  "top": "Dragon",
+  "top_score": 0.9105
+ },
+ "hare_0.jpg": {
+  "top": "Hare",
+  "top_score": 0.9169
+ },
+ "hare_1.jpg": {
+  "top": "Hare",
+  "top_score": 0.9253
+ },
+ "hare_2.jpg": {
+  "top": "Hare",
+  "top_score": 0.9324
+ },
+ "hare_3.jpg": {
+  "top": "Hare",
+  "top_score": 0.9357
+ },
+ "hare_4.jpg": {
+  "top": "Hare",
+  "top_score": 0.9327
+ },
+ "hare_5.jpg": {
+  "top": "Hare",
+  "top_score": 0.9322
+ },
+ "hare_6.jpg": {
+  "top": "Hare",
+  "top_score": 0.931
+ },
+ "hare_7.jpg": {
+  "top": "Hare",
+  "top_score": 0.9344
+ },
+ "horse_0.jpg": {
+  "top": "Horse",
+  "top_score": 0.9379
+ },
+ "horse_1.jpg": {
+  "top": "Horse",
+  "top_score": 0.9128
+ },
+ "horse_2.jpg": {
+  "top": "Horse",
+  "top_score": 0.9323
+ },
+ "horse_3.jpg": {
+  "top": "Horse",
+  "top_score": 0.9451
+ },
+ "horse_4.jpg": {
+  "top": "Horse",
+  "top_score": 0.9409
+ },
+ "horse_5.jpg": {
+  "top": "Horse",
+  "top_score": 0.9451
+ },
+ "horse_6.jpg": {
+  "top": "Horse",
+  "top_score": 0.9433
+ },
+ "horse_7.jpg": {
+  "top": "Horse",
+  "top_score": 0.939
+ },
+ "monkey_0.jpg": {
+  "top": "Monkey",
+  "top_score": 0.9154
+ },
+ "monkey_1.jpg": {
+  "top": "Monkey",
+  "top_score": 0.9156
+ },
+ "monkey_2.jpg": {
+  "top": "Monkey",
+  "top_score": 0.901
+ },
+ "monkey_3.jpg": {
+  "top": "Monkey",
+  "top_score": 0.9149
+ },
+ "monkey_4.jpg": {
+  "top": "Monkey",
+  "top_score": 0.9141
+ },
+ "monkey_5.jpg": {
+  "top": "Monkey",
+  "top_score": 0.9128
+ },
+ "monkey_6.jpg": {
+  "top": "Monkey",
+  "top_score": 0.9155
+ },
+ "monkey_7.jpg": {
+  "top": "Monkey",
+  "top_score": 0.8966
+ },
+ "ox_0.jpg": {
+  "top": "Ox",
+  "top_score": 0.9326
+ },
+ "ox_1.jpg": {
+  "top": "Ox",
+  "top_score": 0.9219
+ },
+ "ox_2.jpg": {
+  "top": "Ox",
+  "top_score": 0.9312
+ },
+ "ox_3.jpg": {
+  "top": "Ox",
+  "top_score": 0.9353
+ },
+ "ox_4.jpg": {
+  "top": "Ox",
+  "top_score": 0.9329
+ },
+ "ox_5.jpg": {
+  "top": "Ox",
+  "top_score": 0.9311
+ },
+ "ox_6.jpg": {
+  "top": "Ox",
+  "top_score": 0.9322
+ },
+ "ox_7.jpg": {
+  "top": "Ox",
+  "top_score": 0.9031
+ },
+ "ram_0.jpg": {
+  "top": "Ram",
+  "top_score": 0.9218
+ },
+ "ram_1.jpg": {
+  "top": "Ram",
+  "top_score": 0.931
+ },
+ "ram_2.jpg": {
+  "top": "Ram",
+  "top_score": 0.9305
+ },
+ "ram_3.jpg": {
+  "top": "Ram",
+  "top_score": 0.9324
+ },
+ "ram_4.jpg": {
+  "top": "Ram",
+  "top_score": 0.9327
+ },
+ "ram_5.jpg": {
+  "top": "Ram",
+  "top_score": 0.9305
+ },
+ "ram_6.jpg": {
+  "top": "Ram",
+  "top_score": 0.9303
+ },
+ "ram_7.jpg": {
+  "top": "Ram",
+  "top_score": 0.9249
+ },
+ "rat_0.jpg": {
+  "top": "Rat",
+  "top_score": 0.9097
+ },
+ "rat_1.jpg": {
+  "top": "Rat",
+  "top_score": 0.9167
+ },
+ "rat_2.jpg": {
+  "top": "Rat",
+  "top_score": 0.9157
+ },
+ "rat_3.jpg": {
+  "top": "Rat",
+  "top_score": 0.9178
+ },
+ "rat_4.jpg": {
+  "top": "Rat",
+  "top_score": 0.9184
+ },
+ "rat_5.jpg": {
+  "top": "Rat",
+  "top_score": 0.9184
+ },
+ "rat_6.jpg": {
+  "top": "Rat",
+  "top_score": 0.9189
+ },
+ "rat_7.jpg": {
+  "top": "Rat",
+  "top_score": 0.915
+ },
+ "snake_0.jpg": {
+  "top": "Snake",
+  "top_score": 0.9044
+ },
+ "snake_1.jpg": {
+  "top": "Snake",
+  "top_score": 0.9125
+ },
+ "snake_2.jpg": {
+  "top": "Snake",
+  "top_score": 0.9129
+ },
+ "snake_3.jpg": {
+  "top": "Snake",
+  "top_score": 0.9113
+ },
+ "snake_4.jpg": {
+  "top": "Snake",
+  "top_score": 0.9127
+ },
+ "snake_5.jpg": {
+  "top": "Snake",
+  "top_score": 0.9116
+ },
+ "snake_6.jpg": {
+  "top": "Snake",
+  "top_score": 0.9071
+ },
+ "snake_7.jpg": {
+  "top": "Snake",
+  "top_score": 0.9457
+ },
+ "tiger_0.jpg": {
+  "top": "Tiger",
+  "top_score": 0.9162
+ },
+ "tiger_1.jpg": {
+  "top": "Tiger",
+  "top_score": 0.9189
+ },
+ "tiger_2.jpg": {
+  "top": "Tiger",
+  "top_score": 0.918
+ },
+ "tiger_3.jpg": {
+  "top": "Tiger",
+  "top_score": 0.9167
+ },
+ "tiger_4.jpg": {
+  "top": "Tiger",
+  "top_score": 0.9164
+ },
+ "tiger_5.jpg": {
+  "top": "Tiger",
+  "top_score": 0.9175
+ },
+ "tiger_6.jpg": {
+  "top": "Tiger",
+  "top_score": 0.9178
+ },
+ "tiger_7.jpg": {
+  "top": "Tiger",
+  "top_score": 0.921
+ },
+ "zero_0.jpg": {
+  "top": "Horse",
+  "top_score": 0.1955
+ },
+ "zero_1.jpg": {
+  "top": "Horse",
+  "top_score": 0.1515
+ },
+ "zero_2.jpg": {
+  "top": null,
+  "top_score": 0.0
+ },
+ "zero_3.jpg": {
+  "top": "Horse",
+  "top_score": 0.1025
+ },
+ "zero_4.jpg": {
+  "top": null,
+  "top_score": 0.0
+ },
+ "zero_5.jpg": {
+  "top": "Horse",
+  "top_score": 0.1866
+ },
+ "zero_6.jpg": {
+  "top": "Horse",
+  "top_score": 0.1511
+ },
+ "zero_7.jpg": {
+  "top": "Horse",
+  "top_score": 0.5132
+ }
+}

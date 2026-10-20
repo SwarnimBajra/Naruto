@@ -17,3 +17,5 @@ game/**/Builds/
 *.sln
 .vs/
 *.slnx
+web/spike/parity/
+seal-safari/public/seals/
