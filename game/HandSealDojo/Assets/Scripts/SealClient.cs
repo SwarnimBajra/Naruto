@@ -18,6 +18,7 @@ public class SealMessage
     public string expect;
     public float expect_score;
     public float expect_thr;
+    public bool armed;
     public int hands;
     public float fps;
 }

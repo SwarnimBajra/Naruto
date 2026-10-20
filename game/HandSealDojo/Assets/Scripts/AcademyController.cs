@@ -37,14 +37,50 @@ public class AcademyController : MonoBehaviour
         _seqs.Add(new Sequence { name = "Lesson 2: Hare, Dragon, Snake", seals = new[] { "Hare", "Dragon", "Snake" } });
         _seqs.Add(new Sequence { name = "Lesson 3: Horse, Ram, Monkey", seals = new[] { "Horse", "Ram", "Monkey" } });
         _seqs.Add(new Sequence { name = "Lesson 4: Bird, Dog, Boar", seals = new[] { "Bird", "Dog", "Boar" } });
-        // Jutsu chains (from memory, still to be checked against jutsu.csv)
-        _seqs.Add(new Sequence { name = "Jutsu: Great Fireball",
+        // Jutsu chains, from Kazuhito00's setting/jutsu.csv
+        // Jutsu chains, from Kazuhito00's setting/jutsu.csv
+        _seqs.Add(new Sequence
+        {
+            name = "Jutsu: Fireball",
             seals = new[] { "Snake", "Ram", "Monkey", "Boar", "Horse", "Tiger" },
-            payoff = "GREAT FIREBALL TECHNIQUE!" });
-        _seqs.Add(new Sequence { name = "Jutsu: Chidori",
-            seals = new[] { "Ox", "Hare", "Monkey" }, payoff = "CHIDORI!" });
-        _seqs.Add(new Sequence { name = "Jutsu: Summoning",
-            seals = new[] { "Boar", "Dog", "Bird", "Monkey", "Ram" }, payoff = "SUMMONING TECHNIQUE!" });
+            payoff = "FIREBALL JUTSU!"
+        });
+        _seqs.Add(new Sequence
+        {
+            name = "Jutsu: Clone",
+            seals = new[] { "Ram", "Snake", "Tiger" },
+            payoff = "CLONE JUTSU!"
+        });
+        _seqs.Add(new Sequence
+        {
+            name = "Jutsu: Summoning",
+            seals = new[] { "Dog", "Boar", "Bird", "Monkey", "Ram" },
+            payoff = "SUMMONING JUTSU!"
+        });
+        _seqs.Add(new Sequence
+        {
+            name = "Jutsu: Phoenix Flower",
+            seals = new[] { "Rat", "Tiger", "Dog", "Ox", "Hare", "Tiger" },
+            payoff = "PHOENIX FLOWER JUTSU!"
+        });
+        _seqs.Add(new Sequence
+        {
+            name = "Jutsu: Water Trumpet",
+            seals = new[] { "Dragon", "Tiger", "Hare" },
+            payoff = "WATER TRUMPET!"
+        });
+        _seqs.Add(new Sequence
+        {
+            name = "Jutsu: Dragon Flame",
+            seals = new[] { "Snake", "Dragon", "Hare", "Tiger" },
+            payoff = "DRAGON FLAME JUTSU!"
+        });
+        _seqs.Add(new Sequence
+        {
+            name = "Jutsu: Substitution",
+            seals = new[] { "Ram", "Boar", "Ox", "Dog", "Snake" },
+            payoff = "SUBSTITUTION JUTSU!"
+        });
     }
 
     void Start()
@@ -64,6 +100,9 @@ public class AcademyController : MonoBehaviour
     {
         if (client != null) client.OnMessage -= HandleMessage;
         if (_ref != null) Destroy(_ref);
+        if (_tex != null) Destroy(_tex);
+        if (_texHover != null) Destroy(_texHover);
+        if (_texActive != null) Destroy(_texActive);
     }
 
     void HandleMessage(SealMessage m)
@@ -158,16 +197,48 @@ public class AcademyController : MonoBehaviour
 
     // ---------------- UI (IMGUI placeholder) ----------------
 
+    Texture2D _tex, _texHover, _texActive;
+
+    static Texture2D Solid(Color c)
+    {
+        var t = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+        t.SetPixel(0, 0, c);
+        t.Apply();
+        return t;
+    }
+
+    static GUIStyle MakeLabel(int size, FontStyle fs, TextAnchor anchor, bool wrap = false)
+    {
+        var st = new GUIStyle
+        {
+            fontSize = size,
+            fontStyle = fs,
+            alignment = anchor,
+            wordWrap = wrap
+        };
+        st.normal.textColor = Color.white;
+        return st;
+    }
+
     void InitStyles()
     {
         if (_title != null) return;
-        _title = new GUIStyle(GUI.skin.label) { fontSize = 40, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
-        _big = new GUIStyle(GUI.skin.label) { fontSize = 90, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
-        _mid = new GUIStyle(GUI.skin.label) { fontSize = 26, alignment = TextAnchor.MiddleCenter };
-        _small = new GUIStyle(GUI.skin.label) { fontSize = 18, alignment = TextAnchor.MiddleCenter };
-        _wrap = new GUIStyle(_small) { wordWrap = true };
-        _left = new GUIStyle(GUI.skin.label) { fontSize = 18, alignment = TextAnchor.MiddleLeft };
-        _btn = new GUIStyle(GUI.skin.button) { fontSize = 20 };
+        _title = MakeLabel(40, FontStyle.Bold, TextAnchor.MiddleCenter);
+        _big = MakeLabel(90, FontStyle.Bold, TextAnchor.MiddleCenter);
+        _mid = MakeLabel(26, FontStyle.Normal, TextAnchor.MiddleCenter);
+        _small = MakeLabel(18, FontStyle.Normal, TextAnchor.MiddleCenter);
+        _wrap = MakeLabel(18, FontStyle.Normal, TextAnchor.MiddleCenter, true);
+        _left = MakeLabel(18, FontStyle.Normal, TextAnchor.MiddleLeft);
+
+        _btn = MakeLabel(20, FontStyle.Bold, TextAnchor.MiddleCenter);
+        _tex = Solid(new Color(0.22f, 0.25f, 0.32f, 0.95f));
+        _texHover = Solid(new Color(0.30f, 0.35f, 0.45f, 0.95f));
+        _texActive = Solid(new Color(0.40f, 0.30f, 0.15f, 0.95f));
+        _btn.normal.background = _tex;
+        _btn.hover.background = _texHover;
+        _btn.active.background = _texActive;
+        _btn.hover.textColor = Color.white;
+        _btn.active.textColor = Color.white;
     }
 
     void OnGUI()
@@ -252,10 +323,13 @@ public class AcademyController : MonoBehaviour
         string head = _state == State.StepDone ? "OK!" : _target.ToUpper();
         GUI.Label(new Rect(0, 66, W, 110), head, _big);
 
-        string tip = (_target == "Hare" || _target == "Ram" || _target == "Snake")
-            ? "Tip: match the reference pose AND your camera framing. Small changes move the score a lot."
-            : "Keep both hands in view at chest height, facing the camera. Hold still until the bar fills.";
-        GUI.Label(new Rect(0, 178, W, 26), tip, _small);
+        var mm = client != null ? client.Latest : null;
+        bool needRelax = _state == State.Running && mm != null && mm.expect == _target && !mm.armed;
+        string tip = needRelax
+            ? "Relax first: lower your hands or break the pose, then make the seal."
+            : (_target == "Hare" || _target == "Ram" || _target == "Snake")
+                ? "Tip: match the reference pose AND your camera framing. Small changes move the score a lot."
+                : "Keep both hands in view at chest height, facing the camera. Hold still until the bar fills.";
 
         // reference + live view
         float refW = 300f, liveW = 400f, gap = 40f, panelH = 225f, py = 236f;
